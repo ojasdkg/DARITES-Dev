@@ -1,0 +1,55 @@
+# Step 1: 
+# Install Python
+# Download Python: https://www.python.org/downloads/ -> Download the latest version for your operating system (Windows, MacOS, or Linux).
+
+# Install Python:
+# Run the downloaded installer.
+# Make sure to check the box "Add Python to PATH" during the installation. This will make it easier to use Python from the command line.
+# Finish the installation by following the on-screen instructions.
+
+# Step 2: 
+# Verify Python Installation:
+# Open a command prompt (Windows) or terminal (MacOS/Linux).
+
+# Type the following command to confirm Python is installed: python --version
+# You should see something like Python 3.x.x (e.g., Python 3.11.0). If you see an error, try restarting your computer and checking again.
+
+# Step 3: 
+# Install pip (Python Package Installer)
+# pip is usually installed automatically with Python, but let's verify it: pip --version
+# If pip is installed, you’ll see something like pip 23.x.x (version numbers may vary).
+
+# Step 4: 
+# Install Required Packages
+# OpenCV library for image processing functions, including edge detection and grayscale conversion
+opencv-python
+
+# MySQL connector for Python, used for connecting to MySQL databases and executing SQL queries
+mysql-connector-python
+
+# NumPy library for numerical operations, used here for array manipulation and calculating mean squared error
+numpy
+
+# Matplotlib library for data visualization; used for potential image displays and debugging
+matplotlib
+
+# Pillow library (PIL) for handling image operations in Python, such as opening, resizing, and masking
+pillow
+
+# Pixelmatch library for precise image comparison, providing pixel-level difference calculations
+pixelmatch
+
+# Save the file as requirements.txt in the same folder where your script is located.
+
+# Install the packages: Open a terminal or command prompt in the folder with your requirements.txt file. Run: pip install -r requirements.txt
+
+# This command will install all the packages listed in requirements.txt. It might take a few minutes.
+
+# Step 5:
+# Run the Python Script
+# After everything is installed, you can now run your Python script:
+# Make sure your script (e.g., rail_inspection.py) is saved in the same folder.
+# Open a terminal or command prompt in that folder.
+# Run the script by typing: python rail_inspection.py
+
+# This will start the script, and it should be ready to connect to the database, perform image processing, and store results.
