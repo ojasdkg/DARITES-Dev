@@ -6,6 +6,7 @@ import re
 from .db_operations import connect_db, insert_inspection
 from .file_operations import load_processed_ids, save_processed_id, move_processed_folder, parse_rail_id_info
 from .image_processing import mask_image, mse
+from .clusterDistance import find_largest_cluster
 
 def process_camera_folder(connection, rail_id, camera_id, good_folder, bad_folder):
     # Select the first image from the good_folder
@@ -30,11 +31,20 @@ def process_camera_folder(connection, rail_id, camera_id, good_folder, bad_folde
         _, mask1 = mask_image(reference_img_path)
         _, mask2 = mask_image(other_img_path)
         edge_diff, _ = mse(mask1, mask2)
-        image_diff, _ = mse(reference_img_gray, other_img_gray)
+        image_diff, diff = mse(reference_img_gray, other_img_gray)
+
+        # Parameters for cluster detection
+        # size_threshold = 50  # Example threshold
+        PPI = 9268
+        resolution = 1 / (PPI / 25.4)  # mm/pixel
+        
+        # Calculate total distance using the diff image
+        dimension_deviation = find_largest_cluster(diff, resolution)
+
         actual_status = os.path.basename(os.path.dirname(os.path.dirname(other_img_path))).split('_')[0]
 
         result_status = ''
-        if image_diff > 50:
+        if (image_diff > 54.71 and camera_id == '40522337') or (image_diff > 54.69 and camera_id == '40522346') or (image_diff > 54.73 and camera_id == '40522366') or (image_diff > 54.82 and camera_id == '40522375') or (image_diff > 54.94 and camera_id == '40522378') or (image_diff > 55.05 and camera_id == '40525413'):
             result_status = 'fail'
         else:
             result_status = 'pass'
@@ -45,7 +55,7 @@ def process_camera_folder(connection, rail_id, camera_id, good_folder, bad_folde
         else:
             confusion_classifier = 'FN'
         
-        insert_inspection(connection, rail_id, camera_id, reference_img_path, other_img_path, edge_diff, 0, image_diff, actual_status, result_status, confusion_classifier, 'operator_id', 'duty_id', shift, '', 0)
+        insert_inspection(connection, rail_id, camera_id, reference_img_path, other_img_path, edge_diff, 0, image_diff, dimension_deviation, actual_status, result_status, confusion_classifier, 'operator_id', 'duty_id', shift, '', 0, 0)
 
     # Compare the reference image with all bad images
     for bad_img_name in os.listdir(bad_folder):
@@ -56,11 +66,19 @@ def process_camera_folder(connection, rail_id, camera_id, good_folder, bad_folde
         _, mask1 = mask_image(reference_img_path)
         _, mask2 = mask_image(bad_img_path)
         edge_diff, _ = mse(mask1, mask2)
-        image_diff, _ = mse(reference_img_gray, bad_img_gray)
+        image_diff, diff = mse(reference_img_gray, bad_img_gray)
         actual_status = os.path.basename(os.path.dirname(os.path.dirname(bad_img_path))).split('_')[0]
 
+        # Parameters for cluster detection
+        # size_threshold = 50  # Example threshold
+        PPI = 9268
+        resolution = 1 / (PPI / 25.4)  # mm/pixel
+        
+        # Calculate total distance using the diff image
+        dimension_deviation = find_largest_cluster(diff, resolution)
+
         result_status = ''
-        if image_diff > 50:
+        if (image_diff > 54.71 and camera_id == '40522337') or (image_diff > 54.69 and camera_id == '40522346') or (image_diff > 54.73 and camera_id == '40522366') or (image_diff > 54.82 and camera_id == '40522375') or (image_diff > 54.94 and camera_id == '40522378') or (image_diff > 55.05 and camera_id == '40525413'):
             result_status = 'fail'
         else:
             result_status = 'pass'
@@ -71,7 +89,21 @@ def process_camera_folder(connection, rail_id, camera_id, good_folder, bad_folde
         else:
             confusion_classifier = 'TN'
 
-        insert_inspection(connection, rail_id, camera_id, reference_img_path, bad_img_path, edge_diff, 0, image_diff, actual_status, result_status, confusion_classifier, 'operator_id', 'duty_id', shift, defect_type, 0)
+        defectType = ''
+        if camera_id == '40522378':
+            defectType = ["ASY (+)", "ASY (-)", "CP (+)", "CP (-)"]
+        elif camera_id == '40525413':
+            defectType = ["OHT", "UHT", "TF (+)", "TF (-)", "TNW", "TKW"]
+        elif camera_id == '40522337':
+            defectType = ["OHT", "UHT", "HF (+)", "HF (-)", "TNW", "TKW", "HH", "LH"]
+        elif camera_id == '40522346':
+            defectType = ["NF", "WF", "FBC", "FBCx"]
+        elif camera_id == '40522366':
+            defectType = ["OHT", "UHT", "HF (+)", "HF (-)", "TNW", "TKW", "HH", "LH"]
+        else: 
+            defectType = ["OHT", "UHT", "HF (+)", "HF (-)", "TNW", "TKW"]
+
+        insert_inspection(connection, rail_id, camera_id, reference_img_path, bad_img_path, edge_diff, 0, image_diff, dimension_deviation, actual_status, result_status, confusion_classifier, 'operator_id', 'duty_id', shift, defectType, 1, 0)
 
     pass
 
@@ -119,7 +151,6 @@ def main_job():
             # time.sleep(600)  # wait 10 minutes before next cycle
         else:
             print("No new rail folders. Waiting for next cycle...")
-
         time.sleep(600)  # wait 10 minutes before next cycle
 
 if __name__ == "__main__":
